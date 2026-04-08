@@ -1,0 +1,22 @@
+
+# Fichiers sensibles
+.env
+/config/master.key
+/config/credentials/*.key
+
+# Rails
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+/storage/*
+!/storage/.keep
+/public/assets
+
+# Bundler
+/.bundle
+/vendor/bundle
+
+# Système
+.DS_Store
+*.swp

@@ -1,121 +1,35 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import Wall      from './components/Wall.jsx'
+import CoverFlow from './components/CoverFlow.jsx'
+import SearchBar from './components/SearchBar.jsx'
+import { useSearch } from './hooks/useSearch.js'
 
-function App() {
-  const [count, setCount] = useState(0)
+const SEARCHBAR_H = 52
+const CF_H        = 272
+const INFO_H      = 56
+const CF_BOTTOM   = SEARCHBAR_H + INFO_H
+
+export default function App() {
+  const { query, setQuery, cfSongs, allSongs, matchedIds, loading, error } = useSearch()
+
+  if (error) {
+    return (
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 12, color: 'rgba(255,255,255,0.5)', fontFamily: '-apple-system, Helvetica Neue, sans-serif' }}>
+        <span style={{ fontSize: 28 }}>⚠️</span>
+        <p style={{ fontSize: 14 }}>Impossible de joindre l'API Rails.</p>
+        <code style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.06)', padding: '4px 10px', borderRadius: 6 }}>{error}</code>
+        <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>Vérifie que le serveur Rails tourne sur :3001</p>
+      </div>
+    )
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+    <div style={{ position: 'relative', height: '100vh', overflow: 'hidden', background: '#090909' }}>
+      <Wall songs={allSongs} matchedIds={matchedIds} />
+      <div style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none', background: 'linear-gradient(to bottom, transparent 0%, transparent 18%, rgba(9,9,9,0.82) 52%, #090909 70%)' }} />
+      <div style={{ position: 'absolute', bottom: CF_BOTTOM, left: 0, right: 0, height: CF_H, zIndex: 10 }}>
+        <CoverFlow songs={cfSongs} />
+      </div>
+      <SearchBar query={query} onChange={setQuery} total={allSongs.length} matched={cfSongs.length} loading={loading} />
+    </div>
   )
 }
-
-export default App
