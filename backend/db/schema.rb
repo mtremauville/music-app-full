@@ -10,11 +10,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2024_01_01_000002) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_08_195846) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
   create_table "albums", force: :cascade do |t|
+    t.string "art_url"
     t.string "artist", null: false
     t.datetime "created_at", null: false
     t.string "hue", null: false
@@ -25,8 +26,10 @@ ActiveRecord::Schema[8.1].define(version: 2024_01_01_000002) do
 
   create_table "songs", force: :cascade do |t|
     t.bigint "album_id", null: false
+    t.string "art_url"
     t.datetime "created_at", null: false
     t.string "duration", null: false
+    t.string "file_path"
     t.string "title", null: false
     t.integer "track_number", null: false
     t.datetime "updated_at", null: false

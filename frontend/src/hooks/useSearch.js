@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { fetchAllSongs, searchSongs } from '../services/api.js'
 
 export function useSearch() {
@@ -9,12 +9,15 @@ export function useSearch() {
   const [error,    setError]    = useState(null)
   const debounceRef = useRef(null)
 
-  useEffect(() => {
+  const loadAll = useCallback(() => {
+    setLoading(true)
     fetchAllSongs()
       .then(data => { setAllSongs(data); setCfSongs(data) })
       .catch(e => setError(e.message))
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => { loadAll() }, [loadAll])
 
   useEffect(() => {
     clearTimeout(debounceRef.current)
@@ -35,5 +38,5 @@ export function useSearch() {
     return new Set(cfSongs.map(s => s.id))
   }, [query, cfSongs])
 
-  return { query, setQuery, cfSongs, allSongs, matchedIds, loading, error }
+  return { query, setQuery, cfSongs, allSongs, matchedIds, loading, error, reload: loadAll }
 }

@@ -17,4 +17,8 @@ class Song < ApplicationRecord
       q: q
     )
   }
+
+  def streamable?
+    file_path.present? && File.exist?(file_path)
+  end
 end

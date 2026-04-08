@@ -1,14 +1,25 @@
 import { useState, useEffect } from 'react'
 import CoverItem from './CoverItem.jsx'
 
-const CF_HEIGHT = 272
+const CF_HEIGHT = 290
 
-export default function CoverFlow({ songs }) {
+export default function CoverFlow({ songs, onPlay, onEdit, focusedSongId, onFocusHandled }) {
   const [idx,     setIdx]     = useState(0)
   const [flipped, setFlipped] = useState(false)
 
   useEffect(() => { setIdx(0); setFlipped(false) }, [songs])
   useEffect(() => { setFlipped(false) }, [idx])
+
+  // Quand une tuile du wall est cliquée → navigue vers cette chanson
+  useEffect(() => {
+    if (!focusedSongId) return
+    const i = songs.findIndex(s => s.id === focusedSongId)
+    if (i !== -1) {
+      setIdx(i)
+      setFlipped(false)
+    }
+    onFocusHandled && onFocusHandled()
+  }, [focusedSongId, songs])
 
   useEffect(() => {
     const handler = e => {
@@ -26,12 +37,21 @@ export default function CoverFlow({ songs }) {
   return (
     <div style={{ position: 'relative', height: CF_HEIGHT }}>
       <div style={{ position: 'absolute', inset: 0, perspective: 920, perspectiveOrigin: '50% 48%', overflow: 'visible' }}>
-        <div style={{ position: 'absolute', left: 0, right: 0, top: '50%', height: 1, zIndex: 50, pointerEvents: 'none', background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.06) 20%, rgba(255,255,255,0.13) 50%, rgba(255,255,255,0.06) 80%, transparent)' }} />
         <div style={{ position: 'absolute', inset: 0, zIndex: 40, pointerEvents: 'none', background: 'linear-gradient(90deg, #090909 0%, transparent 13%, transparent 87%, #090909 100%)' }} />
 
         {songs.length === 0
           ? <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.2)', fontSize: 13, fontStyle: 'italic' }}>Aucun résultat</div>
-          : songs.map((song, i) => <CoverItem key={song.id} song={song} offset={i - idx} isFlipped={flipped && i === idx} onSideClick={() => setIdx(i)} onCenterClick={() => setFlipped(f => !f)} />)
+          : songs.map((song, i) => (
+              <CoverItem
+                key={song.id}
+                song={song}
+                offset={i - idx}
+                isFlipped={flipped && i === idx}
+                onSideClick={() => setIdx(i)}
+                onCenterClick={() => setFlipped(f => !f)}
+                
+              />
+            ))
         }
 
         {idx > 0 && <button className="cf-nav" style={{ left: 14 }} onClick={() => setIdx(i => i - 1)}>‹</button>}
@@ -46,12 +66,18 @@ export default function CoverFlow({ songs }) {
       </div>
 
       {cur && (
-        <div style={{ position: 'absolute', bottom: -46, left: 0, right: 0, textAlign: 'center', padding: '0 24px', pointerEvents: 'none' }}>
+        <div style={{ position: 'absolute', bottom: -52, left: 0, right: 0, textAlign: 'center', padding: '0 24px', pointerEvents: 'none' }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.82)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 2 }}>{cur.title}</div>
-          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', letterSpacing: 0.2 }}>
-            {cur.album.artist} · {cur.album.title} · {cur.album.year}
-            <span style={{ margin: '0 6px', opacity: 0.35 }}>·</span>
+          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            <span>{cur.album.artist} · {cur.album.title} · {cur.album.year}</span>
+            <span style={{ opacity: 0.35 }}>·</span>
             <span style={{ fontVariantNumeric: 'tabular-nums', color: 'rgba(255,255,255,0.2)' }}>{cur.duration}</span>
+            <button
+              onClick={() => onEdit && onEdit(cur)}
+              style={{ background: 'none', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: 10, padding: '2px 8px', borderRadius: 4, pointerEvents: 'all' }}
+            >
+              ✎ éditer
+            </button>
           </div>
           {!flipped && <div style={{ marginTop: 3, fontSize: 9, color: 'rgba(255,255,255,0.12)', letterSpacing: 1.5, textTransform: 'uppercase' }}>cliquer à nouveau pour voir l'album</div>}
         </div>
