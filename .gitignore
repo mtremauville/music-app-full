@@ -1,0 +1,17 @@
+# Ruby / Rails
+backend/.bundle
+backend/log/*
+backend/tmp/*
+backend/storage/*
+backend/*.env
+backend/public/assets
+backend/node_modules
+
+# Node / React
+frontend/node_modules
+frontend/dist
+frontend/.env.local
+
+# Système
+.DS_Store
+*.swp
