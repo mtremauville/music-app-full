@@ -1,8 +1,8 @@
-import WallTile from './WallTile.jsx'
+import AlbumTile from './AlbumTile.jsx'
 
-const TILE_SIZE = 74
+const TILE_SIZE = 86
 
-export default function Wall({ songs, matchedIds, onSongClick }) {
+export default function Wall({ albums, highlightedAlbumIds, selectedAlbumId, onAlbumClick }) {
   return (
     <div style={{
       position: 'absolute', inset: 0, zIndex: 0,
@@ -12,15 +12,16 @@ export default function Wall({ songs, matchedIds, onSongClick }) {
       <div style={{
         display: 'grid',
         gridTemplateColumns: `repeat(auto-fill, minmax(${TILE_SIZE}px, 1fr))`,
-        gap: 9,
-        padding: '16px 14px 0',
+        gap: 12,
+        padding: '68px 14px 0',
       }}>
-        {songs.map(song => (
-          <WallTile
-            key={song.id}
-            song={song}
-            highlighted={!matchedIds || matchedIds.has(song.id)}
-            onClick={() => onSongClick && onSongClick(song)}
+        {albums.map(album => (
+          <AlbumTile
+            key={album.id}
+            album={album}
+            highlighted={!highlightedAlbumIds || highlightedAlbumIds.has(album.id)}
+            selected={selectedAlbumId === album.id}
+            onClick={() => onAlbumClick?.(album)}
           />
         ))}
       </div>
