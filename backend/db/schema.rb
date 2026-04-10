@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_08_195846) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_09_073732) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -21,7 +21,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_08_195846) do
     t.string "hue", null: false
     t.string "title", null: false
     t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
     t.integer "year", null: false
+    t.index ["user_id"], name: "index_albums_on_user_id"
   end
 
   create_table "songs", force: :cascade do |t|
@@ -37,5 +39,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_08_195846) do
     t.index ["album_id"], name: "index_songs_on_album_id"
   end
 
+  create_table "users", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "email", default: "", null: false
+    t.string "encrypted_password", default: "", null: false
+    t.string "jti", null: false
+    t.datetime "updated_at", null: false
+    t.string "username", default: "", null: false
+    t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["jti"], name: "index_users_on_jti", unique: true
+  end
+
+  add_foreign_key "albums", "users"
   add_foreign_key "songs", "albums"
 end

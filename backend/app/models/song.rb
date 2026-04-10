@@ -1,6 +1,8 @@
 class Song < ApplicationRecord
   belongs_to :album
 
+  delegate :user, to: :album
+
   validates :title,        presence: true
   validates :duration,     presence: true
   validates :track_number, presence: true,

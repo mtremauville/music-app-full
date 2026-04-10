@@ -1,35 +1,35 @@
 module Api
   module V1
     class SongsController < ApplicationController
+      # stream est accessible sans token — l'audio HTML5 ne peut pas envoyer de headers
+      skip_before_action :authenticate_user!, only: [:stream]
 
       def index
-        songs = Song.includes(:album).joins(:album).order("albums.year, songs.track_number")
+        songs = current_user.songs.includes(:album).joins(:album).order("albums.year, songs.track_number")
         render json: songs.map { |s| serialize_song(s) }
       end
 
       def show
-        song = Song.includes(:album).find(params[:id])
+        song = current_user.songs.find(params[:id])
         render json: serialize_song(song)
       end
 
       def search
         q     = params[:q].to_s.strip
-        songs = q.present? ? Song.search(q).includes(:album) : Song.includes(:album)
+        songs = q.present? ? current_user.songs.search(q).includes(:album) : current_user.songs.includes(:album)
         songs = songs.joins(:album).order("albums.year, songs.track_number")
         render json: songs.map { |s| serialize_song(s) }
       end
 
       def import
         uploaded = params[:files]
-
         if uploaded.blank?
           render json: { error: "Aucun fichier reçu" }, status: :unprocessable_entity
           return
         end
 
-        storage_dir = Rails.root.join("storage", "music")
+        storage_dir = Rails.root.join("storage", "music", current_user.id.to_s)
         FileUtils.mkdir_p(storage_dir)
-
         results = { imported: 0, updated: 0, errors: [] }
 
         Array(uploaded).each do |file|
@@ -40,7 +40,7 @@ module Api
           File.binwrite(dest_path, file.read) unless File.exist?(dest_path)
 
           begin
-            is_new = Mp3ImportService.import_file(dest_path)
+            is_new = Mp3ImportService.import_file(dest_path, current_user)
             is_new ? results[:imported] += 1 : results[:updated] += 1
           rescue => e
             results[:errors] << "#{file.original_filename}: #{e.message}"
@@ -52,6 +52,7 @@ module Api
       end
 
       def stream
+        # Trouve la chanson sans scoper au current_user (pas de token disponible ici)
         song = Song.find(params[:id])
         unless song.streamable?
           render json: { error: "Fichier audio introuvable" }, status: :not_found
@@ -64,30 +65,19 @@ module Api
       end
 
       def fetch_metadata
-        song   = Song.find(params[:id])
+        song   = current_user.songs.find(params[:id])
         result = MusicBrainzService.search(title: song.title, artist: song.album.artist)
-
         if result.nil?
           render json: { error: "Aucune métadonnée trouvée" }, status: :not_found
           return
         end
-
         song.album.update(art_url: result[:art_url]) if result[:art_url]
         song.update(art_url: result[:art_url])
         render json: serialize_song(song.reload)
       end
 
-      def destroy
-        song = Song.find(params[:id])
-        album = song.album
-        song.destroy
-        # Supprime l'album si plus aucune chanson
-        album.destroy if album.songs.empty?
-        render json: { deleted: true }, status: :ok
-      end
-
       def update
-        song = Song.find(params[:id])
+        song = current_user.songs.find(params[:id])
         if song.update(song_params)
           if params[:song][:album_title].present? || params[:song][:artist].present?
             song.album.update(
@@ -101,7 +91,15 @@ module Api
           render json: { errors: song.errors.full_messages }, status: :unprocessable_entity
         end
       end
-      
+
+      def destroy
+        song  = current_user.songs.find(params[:id])
+        album = song.album
+        song.destroy
+        album.destroy if album.songs.empty?
+        render json: { deleted: true }, status: :ok
+      end
+
       private
 
       def song_params
